@@ -1,8 +1,4 @@
 # IDE specific
 /venv/
 .idea/
-
-# project specific
-/data
-
 __pycache__/
