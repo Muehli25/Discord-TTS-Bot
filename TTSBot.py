@@ -3,6 +3,8 @@ import discord
 from gtts import gTTS
 import uuid
 
+from token import TOKEN
+
 
 class TTSBot(discord.Client):
     CurrentVoiceChannel = None
@@ -44,8 +46,6 @@ class TTSBot(discord.Client):
         tts = gTTS(text, lang=lang)
         tts.save('data/{}.mp3'.format(name))
 
-
-TOKEN = ""
 
 client = TTSBot()
 client.run(TOKEN)
