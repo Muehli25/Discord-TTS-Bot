@@ -31,26 +31,26 @@ class TTSBot(discord.Client):
             name = uuid.uuid1()
             # Get user input
             user_input = message.content[4:]
-            if len(user_input) == 0:
+            if len(user_input) == 0 or (user_input[0] == ":" and user_input.find(" ") == -1):
                 await message.channel.send('No text provided.')
             else:
                 # Check for language tag,
                 if user_input[0] == ":":
-                    lang = user_input[1:3]
-                    text = user_input[4:]
+                    divider = user_input.find(" ")
+                    lang = user_input[1:divider]
+                    text = user_input[(divider + 1):]
                 else:
                     lang = 'en'
                     text = user_input[1:]
                 # Play the requested text
-                filename = 'data/{}.mp3'.format(name)
-                self.parse_text_to_audio(filename, text, lang)
-                self.CurrentVoiceChannel.play(discord.FFmpegPCMAudio(filename))
-
-    @staticmethod
-    def parse_text_to_audio(filename, text, lang):
-        print("Create mp3 for text: {} in {}".format(text, lang))
-        tts = gTTS(text, lang=lang)
-        tts.save(filename)
+                try:
+                    print("Create mp3 for text: {} in {}".format(text, lang))
+                    filename = 'data/{}.mp3'.format(name)
+                    tts = gTTS(text, lang=lang)
+                    tts.save(filename)
+                    self.CurrentVoiceChannel.play(discord.FFmpegPCMAudio(filename))
+                except ValueError:
+                    await message.channel.send("Language {} not supported.".format(lang))
 
 
 # Create new bot
