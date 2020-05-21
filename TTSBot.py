@@ -3,14 +3,14 @@ import discord
 from gtts import gTTS
 import uuid
 
-from token import TOKEN
+from discord_token import TOKEN
 
 
 class TTSBot(discord.Client):
     CurrentVoiceChannel = None
 
     async def on_ready(self):
-        print('We have logged in as {0.user}'.format(client))
+        print('Logged in as {0.user}'.format(client))
 
     async def on_message(self, message):
         if message.author == self.user:
@@ -18,6 +18,7 @@ class TTSBot(discord.Client):
 
         if message.content.startswith(
                 '!bye') and self.CurrentVoiceChannel is not None and self.CurrentVoiceChannel.is_connected():
+            await message.channel.send('Goodbye!')
             await self.CurrentVoiceChannel.disconnect()
             self.CurrentVoiceChannel = None
 
@@ -26,26 +27,33 @@ class TTSBot(discord.Client):
             if self.CurrentVoiceChannel is None:
                 channel = message.author.voice.channel
                 self.CurrentVoiceChannel = await channel.connect()
+            # Create uuid as filename
             name = uuid.uuid1()
-            input = message.content[4:]
-            if len(input) == 0:
+            # Get user input
+            user_input = message.content[4:]
+            if len(user_input) == 0:
                 await message.channel.send('No text provided.')
             else:
-                if input[0] == ":":
-                    lang = input[1:3]
-                    text = input[4:]
+                # Check for language tag,
+                if user_input[0] == ":":
+                    lang = user_input[1:3]
+                    text = user_input[4:]
                 else:
                     lang = 'en'
-                    text = input
-                self.parse_text_to_audio(name, text, lang)
+                    text = user_input[1:]
+                # Play the requested text
                 filename = 'data/{}.mp3'.format(name)
+                self.parse_text_to_audio(filename, text, lang)
                 self.CurrentVoiceChannel.play(discord.FFmpegPCMAudio(filename))
 
-    def parse_text_to_audio(self, name, text, lang):
-        print("Create mp3 for text: {} in {}".format(text,lang))
+    @staticmethod
+    def parse_text_to_audio(filename, text, lang):
+        print("Create mp3 for text: {} in {}".format(text, lang))
         tts = gTTS(text, lang=lang)
-        tts.save('data/{}.mp3'.format(name))
+        tts.save(filename)
 
 
+# Create new bot
 client = TTSBot()
+# run Bot with provided discord token
 client.run(TOKEN)
