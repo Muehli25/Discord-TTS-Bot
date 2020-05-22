@@ -6,4 +6,4 @@ Small Text-to-Speech Bot that uses Google TTS.
 
 ### Usage
 
-Add a file called token.py with TOKEN
+Add a your token to `discord_token.py`
