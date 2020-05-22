@@ -7,29 +7,59 @@ from discord_token import TOKEN
 
 
 class TTSBot(discord.Client):
-    CurrentVoiceChannel = None
+    def __init__(self):
+        super().__init__()
+        self.CurrentConnection = None
+        self.queue = []
+        self.play_next()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
 
+    async def join_channel(self, channel):
+        self.CurrentConnection = await channel.connect()
+
+    async def disconnect_channel(self):
+        await self.CurrentConnection.disconnect()
+        self.CurrentConnection = None
+
+    def play_next(self):
+        if self.CurrentConnection is not None and not self.CurrentConnection.is_playing() and len(self.queue) > 0:
+            to_play = self.queue.pop()
+            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play))
+        self.loop.call_soon(self.play_next)
+
+    def abort_playback(self):
+        self.CurrentConnection.stop()
+        self.queue = []
+
+    def play(self, file):
+        self.CurrentConnection.play(file)
+
     async def on_message(self, message):
         if message.author == self.user:
             return
-
-        if message.content.startswith(
-                '!bye') and self.CurrentVoiceChannel is not None and self.CurrentVoiceChannel.is_connected():
+        
+        if message.content.startswith('!bye') and self.CurrentConnection is not None \
+                and self.CurrentConnection.is_connected():
             await message.channel.send('Goodbye!')
-            await self.CurrentVoiceChannel.disconnect()
-            self.CurrentVoiceChannel = None
+            await self.disconnect_channel()
 
         if message.content.startswith("!lang"):
             await message.channel.send('Visit: {}'.format("https://sites.google.com/site/opti365/translate_codes"))
 
+        if message.content.startswith("!abort"):
+            self.abort_playback()
+
         if message.content.startswith("!say"):
             # if already connected ignore this
-            if self.CurrentVoiceChannel is None:
-                channel = message.author.voice.channel
-                self.CurrentVoiceChannel = await channel.connect()
+            if self.CurrentConnection is None:
+                await self.join_channel(message.author.voice.channel)
+
+            if self.CurrentConnection.channel != message.author.voice.channel:
+                await self.disconnect_channel()
+                await self.join_channel(message.author.voice.channel)
+
             # Create uuid as filename
             name = uuid.uuid1()
             # Get user input
@@ -47,14 +77,14 @@ class TTSBot(discord.Client):
                     text = user_input[1:]
                 # Play the requested text
                 try:
-                    print("Create mp3 for text: {} in {}".format(text, lang))
-                    filename = 'data/{}.mp3'.format(name)
+                    print(f"Create mp3 for text: {text} in {lang}")
+                    filename = f'data/{name}.mp3'
                     tts = gTTS(text, lang=lang)
                     tts.save(filename)
-                    self.CurrentVoiceChannel.play(discord.FFmpegPCMAudio(filename))
+                    self.queue.append(filename)
+                    # self.play(discord.FFmpegPCMAudio(filename))
                 except ValueError:
-                    await message.channel.send("Language {} not supported.".format(lang))
-
+                    await message.channel.send(f"Language {lang} not supported.")
 
 
 # Create new bot
