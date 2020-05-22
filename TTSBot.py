@@ -22,6 +22,9 @@ class TTSBot(discord.Client):
             await self.CurrentVoiceChannel.disconnect()
             self.CurrentVoiceChannel = None
 
+        if message.content.startswith("!lang"):
+            await message.channel.send('Visit: {}'.format("https://sites.google.com/site/opti365/translate_codes"))
+
         if message.content.startswith("!say"):
             # if already connected ignore this
             if self.CurrentVoiceChannel is None:
@@ -40,7 +43,7 @@ class TTSBot(discord.Client):
                     lang = user_input[1:divider]
                     text = user_input[(divider + 1):]
                 else:
-                    lang = 'en'
+                    lang = 'de'
                     text = user_input[1:]
                 # Play the requested text
                 try:
@@ -51,6 +54,7 @@ class TTSBot(discord.Client):
                     self.CurrentVoiceChannel.play(discord.FFmpegPCMAudio(filename))
                 except ValueError:
                     await message.channel.send("Language {} not supported.".format(lang))
+
 
 
 # Create new bot
