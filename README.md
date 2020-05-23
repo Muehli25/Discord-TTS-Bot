@@ -12,8 +12,8 @@ Add your token as an ENV Variable called `TOKEN`
 ### Docker
 
 ```
-docker build -t TTS .
+docker build -t ttsbot .
 
-docker run -e TOKEN="YOUR-TOKEN" discordbots
+docker run -e TOKEN="YOUR-TOKEN" ttsbot
 ```
 
