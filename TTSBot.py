@@ -4,8 +4,6 @@ from gtts import gTTS
 import uuid
 import os
 
-from discord_token import TOKEN
-
 SAY_COMMAND = "!say"
 DATA_FOLDER = "data"
 
@@ -99,4 +97,4 @@ class TTSBot(discord.Client):
 # Create new bot
 client = TTSBot()
 # run Bot with provided discord token
-client.run(TOKEN)
+client.run(os.environ['TOKEN'])
