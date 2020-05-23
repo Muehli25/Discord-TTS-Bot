@@ -15,13 +15,13 @@ class TTSBot(discord.Client):
             os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.queue = []
-        self.play_next()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
 
     async def join_channel(self, channel):
         self.CurrentConnection = await channel.connect()
+        self.play_next()
 
     async def disconnect_channel(self):
         await self.CurrentConnection.disconnect()
@@ -35,7 +35,8 @@ class TTSBot(discord.Client):
             to_play = self.queue.pop()
             self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
                                         after=lambda e: self.delete_file(filename=to_play))
-        self.loop.call_later(0.5, self.play_next)
+        if self.CurrentConnection is not None:
+            self.loop.call_later(0.5, self.play_next)
 
     def abort_playback(self):
         self.CurrentConnection.stop()

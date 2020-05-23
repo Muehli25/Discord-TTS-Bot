@@ -17,6 +17,7 @@ class SummonableTTSBot(discord.Client):
 
     async def call_bot(self, channel):
         self.CurrentConnection = await channel.connect()
+        self.play_next()
 
     async def goodbye_bot(self):
         await self.CurrentConnection.disconnect()
@@ -33,7 +34,8 @@ class SummonableTTSBot(discord.Client):
             to_play = self.queue.pop()
             self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
                                         after=lambda e: self.delete_file(filename=to_play))
-        self.loop.call_later(0.5, self.play_next)
+        if self.CurrentConnection is not None:
+            self.loop.call_later(0.5, self.play_next)
 
     def abort_playback(self):
         self.CurrentConnection.stop()
