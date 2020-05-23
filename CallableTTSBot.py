@@ -4,13 +4,15 @@ from gtts import gTTS
 import uuid
 import os
 
-from discord_token import TOKEN
+DATA_FOLDER = "data"
 
 
 class SummonableTTSBot(discord.Client):
 
     def __init__(self):
         super().__init__()
+        if not os.path.exists(DATA_FOLDER):
+            os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.queue = []
         self.play_next()
@@ -73,7 +75,7 @@ class SummonableTTSBot(discord.Client):
             name = uuid.uuid1()
             # Play the requested text
             try:
-                filename = f'data/{name}.mp3'
+                filename = f'{DATA_FOLDER}/{name}.mp3'
                 tts = gTTS(text, lang=lang)
                 tts.save(filename)
                 self.queue.append(filename)
@@ -84,4 +86,4 @@ class SummonableTTSBot(discord.Client):
 # Create new bot
 client = SummonableTTSBot()
 # run Bot with provided discord token
-client.run(TOKEN)
+client.run(os.environ['TOKEN'])
