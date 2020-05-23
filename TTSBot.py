@@ -7,6 +7,7 @@ import os
 SAY_COMMAND = "!say"
 DATA_FOLDER = "data"
 
+
 class TTSBot(discord.Client):
     def __init__(self):
         super().__init__()
@@ -34,7 +35,7 @@ class TTSBot(discord.Client):
             to_play = self.queue.pop()
             self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
                                         after=lambda e: self.delete_file(filename=to_play))
-        self.loop.call_soon(self.play_next)
+        self.loop.call_later(0.5, self.play_next)
 
     def abort_playback(self):
         self.CurrentConnection.stop()
