@@ -2,6 +2,7 @@ import discord
 
 from gtts import gTTS
 import uuid
+import os
 
 from discord_token import TOKEN
 
@@ -23,10 +24,14 @@ class TTSBot(discord.Client):
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
 
+    def delete_file(self, filename):
+        os.remove(filename)
+
     def play_next(self):
         if self.CurrentConnection is not None and not self.CurrentConnection.is_playing() and len(self.queue) > 0:
             to_play = self.queue.pop()
-            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play))
+            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
+                                        after=lambda e: self.delete_file(filename=to_play))
         self.loop.call_soon(self.play_next)
 
     def abort_playback(self):
@@ -39,7 +44,7 @@ class TTSBot(discord.Client):
     async def on_message(self, message):
         if message.author == self.user:
             return
-        
+
         if message.content.startswith('!bye') and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
             await message.channel.send('Goodbye!')
