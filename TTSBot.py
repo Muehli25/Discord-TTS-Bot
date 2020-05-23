@@ -7,10 +7,13 @@ import os
 from discord_token import TOKEN
 
 SAY_COMMAND = "!say"
+DATA_FOLDER = "data"
 
 class TTSBot(discord.Client):
     def __init__(self):
         super().__init__()
+        if not os.path.exists(DATA_FOLDER):
+            os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.queue = []
         self.play_next()
@@ -84,7 +87,7 @@ class TTSBot(discord.Client):
                 # Play the requested text
                 try:
                     print(f"Create mp3 for text: {text} in {lang}")
-                    filename = f'data/{name}.mp3'
+                    filename = f'{DATA_FOLDER}/{name}.mp3'
                     tts = gTTS(text, lang=lang)
                     tts.save(filename)
                     self.queue.append(filename)
