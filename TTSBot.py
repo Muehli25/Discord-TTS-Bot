@@ -6,6 +6,7 @@ import os
 
 from discord_token import TOKEN
 
+SAY_COMMAND = "!say"
 
 class TTSBot(discord.Client):
     def __init__(self):
@@ -56,7 +57,7 @@ class TTSBot(discord.Client):
         if message.content.startswith("!abort"):
             self.abort_playback()
 
-        if message.content.startswith("!say"):
+        if message.content.startswith(SAY_COMMAND):
             # if already connected ignore this
             if self.CurrentConnection is None:
                 await self.join_channel(message.author.voice.channel)
@@ -68,7 +69,7 @@ class TTSBot(discord.Client):
             # Create uuid as filename
             name = uuid.uuid1()
             # Get user input
-            user_input = message.content[4:]
+            user_input = message.content[len(SAY_COMMAND):]
             if len(user_input) == 0 or (user_input[0] == ":" and user_input.find(" ") == -1):
                 await message.channel.send('No text provided.')
             else:
