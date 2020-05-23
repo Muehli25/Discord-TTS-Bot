@@ -1,6 +1,6 @@
 import discord
 
-from aiogtts import aiogTTS
+from gtts import gTTS
 import uuid
 
 from discord_token import TOKEN
@@ -12,7 +12,6 @@ class TTSBot(discord.Client):
         self.CurrentConnection = None
         self.queue = []
         self.play_next()
-        self.tts = aiogTTS()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
@@ -80,7 +79,8 @@ class TTSBot(discord.Client):
                 try:
                     print(f"Create mp3 for text: {text} in {lang}")
                     filename = f'data/{name}.mp3'
-                    await self.tts.save(text, filename, lang=lang)
+                    tts = gTTS(text, lang=lang)
+                    tts.save(filename)
                     self.queue.append(filename)
                     # self.play(discord.FFmpegPCMAudio(filename))
                 except ValueError:
