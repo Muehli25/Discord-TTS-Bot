@@ -24,6 +24,7 @@ class SummonableTTSBot(discord.Client):
     async def goodbye_bot(self):
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
+        self.queue = []
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
@@ -63,24 +64,26 @@ class SummonableTTSBot(discord.Client):
             self.abort_playback()
 
         else:
-            lang = "de"
-            user_input = message.content
-            if user_input[0] == "+":
-                divider = user_input.find(" ")
-                lang = user_input[1:divider]
-                text = user_input[(divider + 1):]
-            else:
-                text = user_input
-            # Create uuid as filename
-            name = uuid.uuid1()
-            # Play the requested text
-            try:
-                filename = f'{DATA_FOLDER}/{name}.mp3'
-                tts = gTTS(text, lang=lang)
-                tts.save(filename)
-                self.queue.append(filename)
-            except ValueError:
-                await message.channel.send(f"Language not supported or no Text provided.")
+            if self.CurrentConnection is not None \
+                    and self.CurrentConnection.is_connected():
+                lang = "de"
+                user_input = message.content
+                if user_input[0] == "+":
+                    divider = user_input.find(" ")
+                    lang = user_input[1:divider]
+                    text = user_input[(divider + 1):]
+                else:
+                    text = user_input
+                # Create uuid as filename
+                name = uuid.uuid1()
+                # Play the requested text
+                try:
+                    filename = f'{DATA_FOLDER}/{name}.mp3'
+                    tts = gTTS(text, lang=lang)
+                    tts.save(filename)
+                    self.queue.append(filename)
+                except ValueError:
+                    await message.channel.send(f"Language not supported or no Text provided.")
 
 
 # Create new bot
