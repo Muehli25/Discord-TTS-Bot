@@ -13,6 +13,6 @@ WORKDIR /usr/src/app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-COPY CallableTTSBot.py .
+COPY TTSBot.py .
 
-CMD [ "python", "CallableTTSBot.py" ]
+CMD [ "python", "TTSBot.py" ]
