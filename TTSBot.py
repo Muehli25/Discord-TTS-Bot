@@ -84,7 +84,7 @@ class TTSBot(discord.Client):
         elif message.content == "!abort":
             self.abort_playback()
 
-        elif message.content.startsWith("http"):
+        elif message.content.startswith("http"):
             # ignore links
             return
 
