@@ -4,6 +4,7 @@ from gtts import gTTS
 import uuid
 import os
 import queue
+import time
 
 DATA_FOLDER = "data"
 
@@ -67,6 +68,27 @@ class TTSBot(discord.Client):
     def play(self, file):
         self.CurrentConnection.play(file)
 
+    async def countdown(self, number):
+        if number < 0:
+            return
+        await self.say(str(number))
+        time.sleep(1)
+        await self.countdown(number - 1)
+
+    async def say(self, message, language=None):
+        if language is None:
+            language = self.language
+        # Create uuid as filename
+        name = uuid.uuid1()
+        # Play the requested text
+        try:
+            filename = f'{DATA_FOLDER}/{name}.mp3'
+            tts = gTTS(message, lang=language)
+            tts.save(filename)
+            self.queue.put(filename)
+        except ValueError:
+            raise ValueError
+
     async def on_message(self, message):
         if message.author == self.user:
             return
@@ -88,6 +110,9 @@ class TTSBot(discord.Client):
             # ignore links
             return
 
+        elif message.content.startswith("!timer"):
+            await self.countdown(int(message.content[7:]))
+
         else:
             if self.CurrentConnection is not None \
                     and self.CurrentConnection.is_connected():
@@ -97,14 +122,8 @@ class TTSBot(discord.Client):
                     divider = user_input.find(" ")
                     lang = user_input[1:divider]
                     text = user_input[(divider + 1):]
-                # Create uuid as filename
-                name = uuid.uuid1()
-                # Play the requested text
                 try:
-                    filename = f'{DATA_FOLDER}/{name}.mp3'
-                    tts = gTTS(text, lang=lang)
-                    tts.save(filename)
-                    self.queue.put(filename)
+                    await self.say(text, lang)
                 except ValueError:
                     await message.channel.send(f"Language not supported or no Text provided.")
 
