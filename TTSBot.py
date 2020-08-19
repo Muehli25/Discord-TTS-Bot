@@ -8,6 +8,16 @@ import queue
 DATA_FOLDER = "data"
 
 
+def delete_file(filename):
+    os.remove(filename)
+
+
+def clean_data_folder():
+    file_list = [f for f in os.listdir(DATA_FOLDER) if f.endswith(".mp3")]
+    for f in file_list:
+        os.remove(os.path.join(DATA_FOLDER, f))
+
+
 class TTSBot(discord.Client):
 
     def __init__(self, language="en"):
@@ -27,18 +37,18 @@ class TTSBot(discord.Client):
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
         self.queue = queue.Queue()
+        clean_data_folder()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
 
-    def delete_file(self, filename):
-        os.remove(filename)
-
     def play_next(self):
-        if self.CurrentConnection is not None and not self.CurrentConnection.is_playing() and not self.queue.empty():
+        if self.CurrentConnection is not None \
+                and not self.CurrentConnection.is_playing() \
+                and not self.queue.empty():
             to_play = self.queue.get()
             self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
-                                        after=lambda e: self.delete_file(filename=to_play))
+                                        after=lambda e: delete_file(filename=to_play))
         if self.CurrentConnection is not None:
             self.loop.call_later(0.5, self.play_next)
 
@@ -48,10 +58,11 @@ class TTSBot(discord.Client):
         while True:
             try:
                 file = self.queue.get(block=False)
+                delete_file(file)
             except queue.Empty:
                 break
-        self.delete_file(file)
         self.queue = queue.Queue()
+        clean_data_folder()
 
     def play(self, file):
         self.CurrentConnection.play(file)
@@ -64,13 +75,18 @@ class TTSBot(discord.Client):
             await message.channel.send('Hello!')
             await self.call_bot(message.author.voice.channel)
 
-        elif message.content == '!bye' and self.CurrentConnection is not None \
+        elif message.content == '!bye' \
+                and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
             await message.channel.send('Goodbye!')
             await self.goodbye_bot()
 
         elif message.content == "!abort":
             self.abort_playback()
+
+        elif message.content.startsWith("http"):
+            # ignore links
+            return
 
         else:
             if self.CurrentConnection is not None \
