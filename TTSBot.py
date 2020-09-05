@@ -9,13 +9,16 @@ DATA_FOLDER = "data"
 
 
 def delete_file(filename):
-    os.remove(filename)
+    try:
+        os.remove(filename)
+    except FileNotFoundError:
+        print(f'File {filename} does not exists')
 
 
 def clean_data_folder():
     file_list = [f for f in os.listdir(DATA_FOLDER) if f.endswith(".mp3")]
     for f in file_list:
-        os.remove(os.path.join(DATA_FOLDER, f))
+        delete_file(os.path.join(DATA_FOLDER, f))
 
 
 class TTSBot(discord.Client):
@@ -90,7 +93,8 @@ class TTSBot(discord.Client):
 
         else:
             if self.CurrentConnection is not None \
-                    and self.CurrentConnection.is_connected():
+                    and self.CurrentConnection.is_connected() \
+                    and len(message.content) > 0:
                 lang = self.language
                 text = user_input = message.content
                 if user_input[0] == "+":
