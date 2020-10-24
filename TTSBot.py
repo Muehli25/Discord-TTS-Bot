@@ -1,6 +1,7 @@
 import discord
 
 from gtts import gTTS
+from gtts import lang
 import uuid
 import os
 import queue
@@ -19,6 +20,10 @@ def clean_data_folder():
     file_list = [f for f in os.listdir(DATA_FOLDER) if f.endswith(".mp3")]
     for f in file_list:
         delete_file(os.path.join(DATA_FOLDER, f))
+
+
+def languages():
+    return str(lang.tts_langs())
 
 
 class TTSBot(discord.Client):
@@ -86,6 +91,9 @@ class TTSBot(discord.Client):
 
         elif message.content == "!abort":
             self.abort_playback()
+
+        elif message.content == "!lang":
+            await message.channel.send(languages())
 
         elif message.content.startswith("http"):
             # ignore links
