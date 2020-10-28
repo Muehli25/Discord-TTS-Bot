@@ -117,8 +117,13 @@ class TTSBot(discord.Client):
                     tts = gTTS(text, lang=lang)
                     tts.save(filename)
                     self.queue.put(filename)
-                except ValueError:
+                except ValueError as e:
+                    print(f"{message.author} says {message.content}.")
                     await message.channel.send(f"Language not supported or no Text provided.")
+                    if hasattr(e, 'message'):
+                        print(e.message)
+                    else:
+                        print(e)
 
 
 # Create new bot
