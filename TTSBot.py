@@ -1,7 +1,6 @@
 import discord
 
-from gtts import gTTS
-from gtts import lang
+from google.cloud import texttospeech
 import uuid
 import os
 import queue
@@ -36,6 +35,7 @@ class TTSBot(discord.Client):
         self.language = language
         self.queue = queue.Queue()
         self.play_next()
+        self.cloudTTSClient = texttospeech.TextToSpeechClient()
 
     async def call_bot(self, channel):
         self.CurrentConnection = await channel.connect()
@@ -55,7 +55,7 @@ class TTSBot(discord.Client):
                 and not self.CurrentConnection.is_playing() \
                 and not self.queue.empty():
             to_play = self.queue.get()
-            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
+            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play, options="-loglevel panic"),
                                         after=lambda e: delete_file(filename=to_play))
         if self.CurrentConnection is not None:
             self.loop.call_later(0.5, self.play_next)
@@ -92,9 +92,6 @@ class TTSBot(discord.Client):
         elif message.content == "!abort":
             self.abort_playback()
 
-        elif message.content == "!lang":
-            await message.channel.send(languages())
-
         elif message.content.startswith("http"):
             # ignore links
             return
@@ -114,8 +111,18 @@ class TTSBot(discord.Client):
                 # Play the requested text
                 try:
                     filename = f'{DATA_FOLDER}/{name}.mp3'
-                    tts = gTTS(text, lang=lang)
-                    tts.save(filename)
+                    synthesis_input = texttospeech.SynthesisInput(text=text)
+                    voice = texttospeech.VoiceSelectionParams(
+                        language_code=lang, ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+                    )
+                    audio_config = texttospeech.AudioConfig(
+                        audio_encoding=texttospeech.AudioEncoding.MP3
+                    )
+                    response = self.cloudTTSClient.synthesize_speech(
+                        input=synthesis_input, voice=voice, audio_config=audio_config
+                    )
+                    with open(filename, "wb") as out:
+                        out.write(response.audio_content)
                     self.queue.put(filename)
                 except ValueError as e:
                     print(f"{message.author} says {message.content}.")
