@@ -102,6 +102,7 @@ class TTSBot(discord.Client):
                     and len(message.content) > 0:
                 lang = self.language
                 text = user_input = message.content
+                print(f"{message.author} says {message.content}.")
                 if user_input[0] == "+":
                     divider = user_input.find(" ")
                     lang = user_input[1:divider]
@@ -113,7 +114,7 @@ class TTSBot(discord.Client):
                     filename = f'{DATA_FOLDER}/{name}.mp3'
                     synthesis_input = texttospeech.SynthesisInput(text=text)
                     voice = texttospeech.VoiceSelectionParams(
-                        language_code=lang, ssml_gender=texttospeech.SsmlVoiceGender.NEUTRAL
+                        language_code=lang, ssml_gender=texttospeech.SsmlVoiceGender.MALE
                     )
                     audio_config = texttospeech.AudioConfig(
                         audio_encoding=texttospeech.AudioEncoding.MP3
