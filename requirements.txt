@@ -1,6 +1,6 @@
 #
 ####### requirements.txt #######
 #
-gTTS
 discord.py
 PyNaCl
+gTTS

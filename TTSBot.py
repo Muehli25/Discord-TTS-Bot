@@ -1,12 +1,14 @@
 import discord
 
-from gtts import gTTS
-from gtts import lang
 import uuid
 import os
 import queue
 
+from GoogleTTSProvider import GoogleTTSProvider
+from Timer import Timer
+
 DATA_FOLDER = "data"
+TIMEOUT = 1200
 
 
 def delete_file(filename):
@@ -22,30 +24,31 @@ def clean_data_folder():
         delete_file(os.path.join(DATA_FOLDER, f))
 
 
-def languages():
-    return str(lang.tts_langs())
-
-
 class TTSBot(discord.Client):
 
     def __init__(self, language="en"):
         super().__init__()
+        self.timer = None
         if not os.path.exists(DATA_FOLDER):
             os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.language = language
         self.queue = queue.Queue()
         self.play_next()
+        self.TTSProvider = GoogleTTSProvider()
+        self.current_text_channel = None
 
     async def call_bot(self, channel):
         self.CurrentConnection = await channel.connect()
         self.play_next()
 
     async def goodbye_bot(self):
+        await self.current_text_channel.send('Goodbye!')
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
         self.queue = queue.Queue()
         clean_data_folder()
+        self.stop_timeout()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
@@ -55,7 +58,7 @@ class TTSBot(discord.Client):
                 and not self.CurrentConnection.is_playing() \
                 and not self.queue.empty():
             to_play = self.queue.get()
-            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play),
+            self.CurrentConnection.play(discord.FFmpegPCMAudio(to_play, options="-loglevel panic"),
                                         after=lambda e: delete_file(filename=to_play))
         if self.CurrentConnection is not None:
             self.loop.call_later(0.5, self.play_next)
@@ -75,25 +78,40 @@ class TTSBot(discord.Client):
     def play(self, file):
         self.CurrentConnection.play(file)
 
+    def start_timeout(self):
+        if self.timer is None:
+            self.timer = Timer(TIMEOUT, self.timeout_callback)
+
+    def reset_timeout(self):
+        if self.timer is not None:
+            self.timer.cancel()
+        self.timer = Timer(TIMEOUT, self.timeout_callback)
+
+    def stop_timeout(self):
+        if self.timer is not None:
+            self.timer.cancel()
+
+    async def timeout_callback(self):
+        await self.goodbye_bot()
+
     async def on_message(self, message):
         if message.author == self.user:
             return
 
         elif message.content == "!call":
-            await message.channel.send('Hello!')
+            self.current_text_channel = message.channel
+            await self.current_text_channel.send('Hello!')
             await self.call_bot(message.author.voice.channel)
+            self.start_timeout()
+
 
         elif message.content == '!bye' \
                 and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
-            await message.channel.send('Goodbye!')
             await self.goodbye_bot()
 
         elif message.content == "!abort":
             self.abort_playback()
-
-        elif message.content == "!lang":
-            await message.channel.send(languages())
 
         elif message.content.startswith("http"):
             # ignore links
@@ -103,8 +121,11 @@ class TTSBot(discord.Client):
             if self.CurrentConnection is not None \
                     and self.CurrentConnection.is_connected() \
                     and len(message.content) > 0:
+                # Cancel Time one new Message
+                self.reset_timeout()
                 lang = self.language
                 text = user_input = message.content
+                print(f"{message.author} says {message.content}.")
                 if user_input[0] == "+":
                     divider = user_input.find(" ")
                     lang = user_input[1:divider]
@@ -114,12 +135,13 @@ class TTSBot(discord.Client):
                 # Play the requested text
                 try:
                     filename = f'{DATA_FOLDER}/{name}.mp3'
-                    tts = gTTS(text, lang=lang)
-                    tts.save(filename)
+
+                    self.TTSProvider.create_audio_file(filename, lang, text)
+
                     self.queue.put(filename)
                 except ValueError as e:
                     print(f"{message.author} says {message.content}.")
-                    await message.channel.send(f"Language not supported or no Text provided.")
+                    await self.current_text_channel.send(f"Language not supported or no Text provided.")
                     if hasattr(e, 'message'):
                         print(e.message)
                     else:
