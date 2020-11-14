@@ -1,11 +1,10 @@
 import discord
 
-from google.cloud import texttospeech
 import uuid
 import os
 import queue
 
-from GoogleCloudTTSProvider import GoogleCloudTTSProvider
+from GoogleTTSProvider import GoogleTTSProvider
 from Timer import Timer
 
 DATA_FOLDER = "data"
@@ -36,7 +35,7 @@ class TTSBot(discord.Client):
         self.language = language
         self.queue = queue.Queue()
         self.play_next()
-        self.TTSProvider = GoogleCloudTTSProvider()
+        self.TTSProvider = GoogleTTSProvider()
         self.current_text_channel = None
 
     async def call_bot(self, channel):

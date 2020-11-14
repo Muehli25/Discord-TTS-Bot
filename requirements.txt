@@ -3,4 +3,4 @@
 #
 discord.py
 PyNaCl
-google-cloud-texttospeech
+gTTS
