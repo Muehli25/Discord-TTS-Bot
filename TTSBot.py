@@ -8,7 +8,7 @@ import queue
 from Timer import Timer
 
 DATA_FOLDER = "data"
-TIMEOUT = 600
+TIMEOUT = 1200
 
 
 def delete_file(filename):
@@ -48,6 +48,7 @@ class TTSBot(discord.Client):
         self.CurrentConnection = None
         self.queue = queue.Queue()
         clean_data_folder()
+        self.stop_timeout()
 
     async def on_ready(self):
         print('Logged in as {0.user}'.format(client))
@@ -85,6 +86,10 @@ class TTSBot(discord.Client):
         if self.timer is not None:
             self.timer.cancel()
         self.timer = Timer(TIMEOUT, self.timeout_callback)
+
+    def stop_timeout(self):
+        if self.timer is not None:
+            self.timer.cancel()
 
     async def timeout_callback(self):
         await self.goodbye_bot()
