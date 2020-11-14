@@ -14,5 +14,6 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 COPY TTSBot.py .
+COPY Timer.py .
 
 CMD [ "python", "TTSBot.py" ]

@@ -5,7 +5,10 @@ import uuid
 import os
 import queue
 
+from Timer import Timer
+
 DATA_FOLDER = "data"
+TIMEOUT = 600
 
 
 def delete_file(filename):
@@ -21,14 +24,11 @@ def clean_data_folder():
         delete_file(os.path.join(DATA_FOLDER, f))
 
 
-def languages():
-    return str(lang.tts_langs())
-
-
 class TTSBot(discord.Client):
 
     def __init__(self, language="en"):
         super().__init__()
+        self.timer = None
         if not os.path.exists(DATA_FOLDER):
             os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
@@ -36,12 +36,14 @@ class TTSBot(discord.Client):
         self.queue = queue.Queue()
         self.play_next()
         self.cloudTTSClient = texttospeech.TextToSpeechClient()
+        self.current_text_channel = None
 
     async def call_bot(self, channel):
         self.CurrentConnection = await channel.connect()
         self.play_next()
 
     async def goodbye_bot(self):
+        await self.current_text_channel.send('Goodbye!')
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
         self.queue = queue.Queue()
@@ -75,18 +77,32 @@ class TTSBot(discord.Client):
     def play(self, file):
         self.CurrentConnection.play(file)
 
+    def start_timeout(self):
+        if self.timer is None:
+            self.timer = Timer(TIMEOUT, self.timeout_callback)
+
+    def reset_timeout(self):
+        if self.timer is not None:
+            self.timer.cancel()
+        self.timer = Timer(TIMEOUT, self.timeout_callback)
+
+    async def timeout_callback(self):
+        await self.goodbye_bot()
+
     async def on_message(self, message):
         if message.author == self.user:
             return
 
         elif message.content == "!call":
-            await message.channel.send('Hello!')
+            self.current_text_channel = message.channel
+            await self.current_text_channel.send('Hello!')
             await self.call_bot(message.author.voice.channel)
+            self.start_timeout()
+
 
         elif message.content == '!bye' \
                 and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
-            await message.channel.send('Goodbye!')
             await self.goodbye_bot()
 
         elif message.content == "!abort":
@@ -100,6 +116,8 @@ class TTSBot(discord.Client):
             if self.CurrentConnection is not None \
                     and self.CurrentConnection.is_connected() \
                     and len(message.content) > 0:
+                # Cancel Time one new Message
+                self.reset_timeout()
                 lang = self.language
                 text = user_input = message.content
                 print(f"{message.author} says {message.content}.")
@@ -127,7 +145,7 @@ class TTSBot(discord.Client):
                     self.queue.put(filename)
                 except ValueError as e:
                     print(f"{message.author} says {message.content}.")
-                    await message.channel.send(f"Language not supported or no Text provided.")
+                    await self.current_text_channel.send(f"Language not supported or no Text provided.")
                     if hasattr(e, 'message'):
                         print(e.message)
                     else:
