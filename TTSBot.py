@@ -5,6 +5,7 @@ import uuid
 import os
 import queue
 
+from GoogleCloudTTSProvider import GoogleCloudTTSProvider
 from Timer import Timer
 
 DATA_FOLDER = "data"
@@ -35,7 +36,7 @@ class TTSBot(discord.Client):
         self.language = language
         self.queue = queue.Queue()
         self.play_next()
-        self.cloudTTSClient = texttospeech.TextToSpeechClient()
+        self.TTSProvider = GoogleCloudTTSProvider()
         self.current_text_channel = None
 
     async def call_bot(self, channel):
@@ -135,18 +136,9 @@ class TTSBot(discord.Client):
                 # Play the requested text
                 try:
                     filename = f'{DATA_FOLDER}/{name}.mp3'
-                    synthesis_input = texttospeech.SynthesisInput(text=text)
-                    voice = texttospeech.VoiceSelectionParams(
-                        language_code=lang, ssml_gender=texttospeech.SsmlVoiceGender.MALE
-                    )
-                    audio_config = texttospeech.AudioConfig(
-                        audio_encoding=texttospeech.AudioEncoding.MP3
-                    )
-                    response = self.cloudTTSClient.synthesize_speech(
-                        input=synthesis_input, voice=voice, audio_config=audio_config
-                    )
-                    with open(filename, "wb") as out:
-                        out.write(response.audio_content)
+
+                    self.TTSProvider.create_audio_file(filename, lang, text)
+
                     self.queue.put(filename)
                 except ValueError as e:
                     print(f"{message.author} says {message.content}.")
