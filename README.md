@@ -1,13 +1,12 @@
-# DiscordBots
+# Discord-TTS-Bot
 
 ## TTSBot
 
-Small Text-to-Speech Bot that uses Google TTS.
+Simple Text-to-Speech Bot that uses Google TTS or Google Cloud TTS
 
 ### Usage
 
 Add your token as an ENV Variable called `TOKEN`
-
 
 ### Docker
 
