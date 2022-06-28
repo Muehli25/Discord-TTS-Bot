@@ -8,6 +8,19 @@ Simple Text-to-Speech Bot that uses Google TTS or Google Cloud TTS
 
 Add your token as an ENV Variable called `TOKEN`
 
+#### Commands
+
+| Command  | Description |
+| ------------- | ------------- |
+| !call  | Summon the bot to your current voice channel |
+| !bye  | Dismiss the bot from the current channel |
+| !abort | Abort current playback (useful for long texts) |
+| +en text | Read the next text in the specified language, in this case english. |
+
+#### Languages
+
+Using the CloudTTS nearly all ISO 639-1 languages can be used. 
+
 ### Docker
 
 ```
@@ -16,3 +29,6 @@ docker build -t ttsbot .
 docker run -e TOKEN="YOUR-TOKEN" ttsbot
 ```
 
+### Google Cloud TTS
+
+WIP
