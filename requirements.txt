@@ -1,6 +1,6 @@
 #
 ####### requirements.txt #######
 #
-discord.py
-PyNaCl
-google-cloud-texttospeech
+discord.py==1.7.0
+PyNaCl==1.4.0
+google-cloud-texttospeech==2.3.0
