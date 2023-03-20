@@ -1,7 +1,7 @@
 from gtts import gTTS
 
 
-class GoogleTTSProvider:
+class TTSProvider:
 
     def create_audio_file(self, filename, language, text):
         tts = gTTS(text, lang=language)

@@ -1,7 +1,7 @@
 from google.cloud import texttospeech
 
 
-class GoogleCloudTTSProvider:
+class TTSProvider:
     def __init__(self):
         self.cloudTTSClient = texttospeech.TextToSpeechClient()
 

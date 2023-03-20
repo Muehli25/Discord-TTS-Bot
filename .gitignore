@@ -1,4 +1,6 @@
 # IDE specific
 /venv/
+/bot-env/
+data/
 .idea/
 __pycache__/
