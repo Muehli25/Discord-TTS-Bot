@@ -4,7 +4,7 @@ import uuid
 import os
 import queue
 
-from GoogleTTSProvider import GoogleTTSProvider
+from GoogleCloudTTSProvider import TTSProvider
 from Timer import Timer
 
 DATA_FOLDER = "data"
@@ -27,7 +27,10 @@ def clean_data_folder():
 class TTSBot(discord.Client):
 
     def __init__(self, language="en"):
-        super().__init__()
+        intents = discord.Intents.default()
+        intents.message_content = True
+        super().__init__(intents=intents)
+
         self.timer = None
         if not os.path.exists(DATA_FOLDER):
             os.makedirs(DATA_FOLDER)
@@ -35,15 +38,18 @@ class TTSBot(discord.Client):
         self.language = language
         self.queue = queue.Queue()
         self.play_next()
-        self.TTSProvider = GoogleTTSProvider()
+        self.TTSProvider = TTSProvider()
         self.current_text_channel = None
 
     async def call_bot(self, channel):
         self.CurrentConnection = await channel.connect()
         self.play_next()
 
+    async def send_text_message(self, text):
+        await self.current_text_channel.send(text)
+
     async def goodbye_bot(self):
-        await self.current_text_channel.send('Goodbye!')
+        await self.send_text_message('Goodbye!')
         await self.CurrentConnection.disconnect()
         self.CurrentConnection = None
         self.queue = queue.Queue()
@@ -100,10 +106,9 @@ class TTSBot(discord.Client):
 
         elif message.content == "!call":
             self.current_text_channel = message.channel
-            await self.current_text_channel.send('Hello!')
+            await self.send_text_message('Hello!')
             await self.call_bot(message.author.voice.channel)
             self.start_timeout()
-
 
         elif message.content == '!bye' \
                 and self.CurrentConnection is not None \
@@ -141,7 +146,7 @@ class TTSBot(discord.Client):
                     self.queue.put(filename)
                 except ValueError as e:
                     print(f"{message.author} says {message.content}.")
-                    await self.current_text_channel.send(f"Language not supported or no Text provided.")
+                    await self.send_text_message(f"Language not supported or no Text provided.")
                     if hasattr(e, 'message'):
                         print(e.message)
                     else:
