@@ -19,7 +19,9 @@ Add your token as an ENV Variable called `TOKEN`
 
 #### Languages
 
-Using the CloudTTS nearly all ISO 639-1 languages can be used. 
+Using the CloudTTS nearly all ISO 639-1 languages can be used.
+
+With the environmental variable `LANG`, the default language can be set.
 
 ### Docker
 
@@ -31,4 +33,8 @@ docker run -e TOKEN="YOUR-TOKEN" ttsbot
 
 ### Google Cloud TTS
 
-WIP
+```
+docker build -t ttsbot .
+
+docker run -e TOKEN="YOUR-TOKEN" -e GOOGLE_APPLICATION_CREDENTIALS="path/to/credentials.json"  ttsbot
+```
