@@ -3,6 +3,7 @@ import discord
 import uuid
 import os
 import queue
+from SsmlVoiceGender import SsmlVoiceGender
 
 from GoogleCloudTTSProvider import TTSProvider
 from Timer import Timer
@@ -36,6 +37,7 @@ class TTSBot(discord.Client):
             os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.language = language
+        self.gender = SsmlVoiceGender.SSML_VOICE_GENDER_UNSPECIFIED
         self.queue = queue.Queue()
         self.play_next()
         self.TTSProvider = TTSProvider()
@@ -104,6 +106,21 @@ class TTSBot(discord.Client):
         if message.author == self.user:
             return
 
+        elif message.content == '!male' \
+                and self.CurrentConnection is not None \
+                and self.CurrentConnection.is_connected():
+            self.gender = SsmlVoiceGender.MALE
+        
+        elif message.content == '!female' \
+                and self.CurrentConnection is not None \
+                and self.CurrentConnection.is_connected():
+            self.gender = SsmlVoiceGender.FEMALE
+        
+        elif message.content == '!neutral' \
+                and self.CurrentConnection is not None \
+                and self.CurrentConnection.is_connected():
+            self.gender = SsmlVoiceGender.NEUTRAL
+
         elif message.content == "!call":
             self.current_text_channel = message.channel
             await self.send_text_message('Hello!')
@@ -141,7 +158,7 @@ class TTSBot(discord.Client):
                 try:
                     filename = f'{DATA_FOLDER}/{name}.mp3'
 
-                    self.TTSProvider.create_audio_file(filename, lang, text)
+                    self.TTSProvider.create_audio_file(filename, lang, text, self.gender)
 
                     self.queue.put(filename)
                 except ValueError as e:
