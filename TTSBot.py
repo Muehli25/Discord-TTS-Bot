@@ -3,8 +3,8 @@ import discord
 import uuid
 import os
 import queue
-from SsmlVoiceGender import SsmlVoiceGender
 
+from google.cloud import texttospeech
 from GoogleCloudTTSProvider import TTSProvider
 from Timer import Timer
 
@@ -37,7 +37,7 @@ class TTSBot(discord.Client):
             os.makedirs(DATA_FOLDER)
         self.CurrentConnection = None
         self.language = language
-        self.gender = SsmlVoiceGender.SSML_VOICE_GENDER_UNSPECIFIED
+        self.gender = texttospeech.SsmlVoiceGender.NEUTRAL
         self.queue = queue.Queue()
         self.play_next()
         self.TTSProvider = TTSProvider()
@@ -109,17 +109,17 @@ class TTSBot(discord.Client):
         elif message.content == '!male' \
                 and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
-            self.gender = SsmlVoiceGender.MALE
+            self.gender = texttospeech.SsmlVoiceGender.MALE
         
         elif message.content == '!female' \
                 and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
-            self.gender = SsmlVoiceGender.FEMALE
+            self.gender = texttospeech.SsmlVoiceGender.FEMALE
         
         elif message.content == '!neutral' \
                 and self.CurrentConnection is not None \
                 and self.CurrentConnection.is_connected():
-            self.gender = SsmlVoiceGender.NEUTRAL
+            self.gender = texttospeech.SsmlVoiceGender.NEUTRAL
 
         elif message.content == "!call":
             self.current_text_channel = message.channel
@@ -168,6 +168,10 @@ class TTSBot(discord.Client):
                         print(e.message)
                     else:
                         print(e)
+                except Exception as e:
+                    print(f"{message.author} says {message.content}.")
+                    print(f"Error: {e}, Language {lang} with gender {self.gender.name} not supported.")
+                    await self.send_text_message(f"Language {lang} with gender {self.gender.name} not supported.")
 
 
 # Create new bot
