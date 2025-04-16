@@ -1,15 +1,14 @@
 from google.cloud import texttospeech
 
-
 class TTSProvider:
     def __init__(self):
         self.cloudTTSClient = texttospeech.TextToSpeechClient()
 
-    def create_audio_file(self, filename, language, text):
+    def create_audio_file(self, filename, language, text, gender):
         synthesis_input = texttospeech.SynthesisInput(text=text)
         voice = texttospeech.VoiceSelectionParams(
             language_code=language,
-            ssml_gender=texttospeech.SsmlVoiceGender.MALE
+            ssml_gender=gender
         )
         audio_config = texttospeech.AudioConfig(
             audio_encoding=texttospeech.AudioEncoding.MP3
