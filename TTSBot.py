@@ -174,9 +174,10 @@ class TTSBot(discord.Client):
                     await self.send_text_message(f"Language {lang} with gender {self.gender.name} not supported.")
 
 
-# Create new bot
-client = TTSBot()
-if os.getenv("LANG") is not None:
-    client = TTSBot(os.environ['LANG'])
-# run Bot with provided discord token
-client.run(os.environ['TOKEN'])
+if __name__ == "__main__":
+    # Create new bot
+    client = TTSBot()
+    if os.getenv("LANG") is not None:
+        client = TTSBot(os.environ['LANG'])
+    # run Bot with provided discord token
+    client.run(os.environ['TOKEN'])
