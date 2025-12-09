@@ -38,3 +38,18 @@ docker build -t ttsbot .
 
 docker run -e TOKEN="YOUR-TOKEN" -e GOOGLE_APPLICATION_CREDENTIALS="path/to/credentials.json"  ttsbot
 ```
+
+### Running Tests
+
+To run the tests, you need to install the development dependencies:
+
+```bash
+pip install -r requirements.txt
+pip install coverage pytest pytest-asyncio
+```
+
+Then you can run the tests using `pytest`:
+
+```bash
+pytest
+```
