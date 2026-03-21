@@ -4,3 +4,4 @@
 discord.py==2.7.1
 google-cloud-texttospeech==2.34.0
 PyNaCl==1.6.2
+davey==0.1.4
